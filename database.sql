@@ -1,15 +1,10 @@
--- =====================================================
+
 -- 1. KHỞI TẠO CƠ SỞ DỮ LIỆU QUIZ_DB
--- =====================================================
 CREATE DATABASE IF NOT EXISTS quiz_db 
 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE quiz_db;
 
--- =====================================================
 -- 2. TÀI KHOẢN NGƯỜI DÙNG & XÁC THỰC
--- Yêu cầu: username (email), password (hash), họ tên, 
--- giới tính, ngày sinh, xác thực OTP 10 phút, hỗ trợ khóa (block) tài khoản.
--- =====================================================
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,          -- username là địa chỉ email
@@ -25,12 +20,6 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Đồng bộ schema của các database đã được tạo từ phiên bản cũ.
--- ALTER TABLE users
---     MODIFY COLUMN gender VARCHAR(10) NOT NULL;
--- ALTER TABLE users
---     ADD COLUMN IF NOT EXISTS block_create_quiz BOOLEAN NOT NULL DEFAULT FALSE,
---     ADD COLUMN IF NOT EXISTS block_take_exam BOOLEAN NOT NULL DEFAULT FALSE;
 
 CREATE TABLE IF NOT EXISTS otp_verifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -42,12 +31,8 @@ CREATE TABLE IF NOT EXISTS otp_verifications (
     INDEX idx_otp_email (email)
 );
 
--- =====================================================
+
 -- 3. NGÂN HÀNG ĐỀ: BỘ ĐỀ, CÂU HỎI VÀ CÁC ĐÁP ÁN
--- Yêu cầu: mỗi bộ đề có số câu & thời gian thi do người tạo chỉ định;
--- tổng điểm là 10; mỗi câu có đúng 4 đáp án và duy nhất 1 đáp án đúng;
--- cho phép sửa bộ đề khi chưa có ai thi.
--- =====================================================
 CREATE TABLE IF NOT EXISTS quizzes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     creator_id INT NOT NULL,
@@ -75,12 +60,8 @@ CREATE TABLE IF NOT EXISTS options (
     FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
 );
 
--- =====================================================
+
 -- 4. LƯỢT THI VÀ KẾT QUẢ; PHỤC VỤ THỐNG KÊ / XẾP HẠNG
--- Yêu cầu: ghi nhận lượt thi, điểm số, thời gian làm bài;
--- xếp hạng theo từng bộ đề (ưu tiên điểm, sau đó đến thời gian);
--- client gửi từng đáp án lên server, server chấm phản hồi đúng/sai.
--- =====================================================
 CREATE TABLE IF NOT EXISTS exam_sessions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     quiz_id INT NOT NULL,
