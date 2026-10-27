@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox prefHeight="700.0" prefWidth="960.0" spacing="16.0" styleClass="exam-root" stylesheets="@../css/exam.css" xmlns="http://javafx.com/javafx/17.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Client_GUI.Controller.TakeExam">
+    <children>
+        <!-- Thanh Header phòng thi -->
+        <HBox alignment="CENTER_LEFT" styleClass="top-bar">
+            <children>
+                <VBox spacing="2.0">
+                    <children>
+                        <Label fx:id="lblQuizTitle" styleClass="page-title" text="Bài thi trắc nghiệm" />
+                        <Label fx:id="lblQuestionProgress" styleClass="page-subtitle" text="Câu hỏi 1 / 10" />
+                    </children>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS" />
+                <Label fx:id="lblTimer" styleClass="timer-badge" text="Thời gian còn: 00:00" />
+            </children>
+        </HBox>
+
+        <!-- Khung làm bài chính -->
+        <VBox spacing="18.0" styleClass="content-box" VBox.vgrow="ALWAYS">
+            <VBox.margin>
+                <Insets bottom="20.0" left="24.0" right="24.0" />
+            </VBox.margin>
+            <children>
+                <!-- Nội dung đề bài -->
+                <Label fx:id="lblQuestionContent" styleClass="question-text" text="Đang tải nội dung câu hỏi..." wrapText="true" />
+                
+                <!-- Ảnh minh họa nếu có -->
+                <ImageView fx:id="imgQuestion" fitHeight="220.0" fitWidth="420.0" managed="false" preserveRatio="true" visible="false" />
+
+                <!-- Danh sách 4 đáp án dạng thẻ bấm -->
+                <VBox spacing="10.0" VBox.vgrow="ALWAYS">
+                    <children>
+                        <fx:define>
+                            <ToggleGroup fx:id="tgOptions" />
+                        </fx:define>
+                        <RadioButton fx:id="rbOptionA" maxWidth="Infinity" styleClass="opt-row" text="Phương án A" toggleGroup="$tgOptions" wrapText="true" />
+                        <RadioButton fx:id="rbOptionB" maxWidth="Infinity" styleClass="opt-row" text="Phương án B" toggleGroup="$tgOptions" wrapText="true" />
+                        <RadioButton fx:id="rbOptionC" maxWidth="Infinity" styleClass="opt-row" text="Phương án C" toggleGroup="$tgOptions" wrapText="true" />
+                        <RadioButton fx:id="rbOptionD" maxWidth="Infinity" styleClass="opt-row" text="Phương án D" toggleGroup="$tgOptions" wrapText="true" />
+                    </children>
+                </VBox>
+
+                <!-- Dòng phản hồi Đúng/Sai -->
+                <Label fx:id="lblFeedback" minHeight="24.0" wrapText="true" />
+
+                <!-- Nút điều hướng nộp/chuyển câu -->
+                <HBox alignment="CENTER_RIGHT" spacing="12.0">
+                    <children>
+                        <Button fx:id="btnSubmitAnswer" onAction="#handleSubmitAnswer" styleClass="btn-primary-blue" text="Xác nhận câu này" />
+                        <Button fx:id="btnNextQuestion" disable="true" onAction="#handleNextQuestion" styleClass="btn-secondary-blue" text="Câu tiếp theo →" />
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+    </children>
+</VBox>

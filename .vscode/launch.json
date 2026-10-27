@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Run MainApp (Client)",
+            "request": "launch",
+            "mainClass": "Client_GUI.MainApp",
+            "projectName": "Creat_quiz",
+            "vmArgs": "--module-path \"${workspaceFolder}/lib\" --add-modules javafx.controls,javafx.fxml -Djava.library.path=\"${workspaceFolder}/lib\""
+        },
+        {
+            "type": "java",
+            "name": "Run Server",
+            "request": "launch",
+            "mainClass": "Server.Server_socket",
+            "projectName": "Creat_quiz"
+        }
+    ]
+}

@@ -1,0 +1,105 @@
+
+.root-container {
+    -fx-background-color: #f1f5f9;
+    -fx-font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.otp-card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 10px;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1px;
+    -fx-border-radius: 10px;
+    -fx-pref-width: 440px;
+    -fx-max-width: 440px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 10, 0, 0, 3);
+}
+
+.brand-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1e293b;
+}
+
+.brand-subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: #64748b;
+    -fx-text-alignment: center;
+}
+
+.email-badge {
+    -fx-background-color: #f8fafc;
+    -fx-border-color: #cbd5e1;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 6px 12px;
+}
+
+.timer-box {
+    -fx-background-color: #f8fafc;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 8px 14px;
+}
+
+.timer-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #475569;
+}
+
+.timer-value {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2563eb;
+}
+
+.otp-input {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cbd5e1;
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-alignment: CENTER;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1e293b;
+    -fx-pref-height: 48px;
+}
+
+.otp-input:focused {
+    -fx-border-color: #2563eb;
+}
+
+.btn-primary-blue {
+    -fx-background-color: #2563eb;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-font-size: 13.5px;
+    -fx-pref-height: 42px;
+    -fx-background-radius: 6px;
+    -fx-cursor: hand;
+}
+
+.btn-primary-blue:hover {
+    -fx-background-color: #1d4ed8;
+}
+
+.btn-primary-blue:disabled {
+    -fx-background-color: #94a3b8;
+    -fx-opacity: 0.8;
+}
+
+.link-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #64748b;
+    -fx-font-size: 12.5px;
+    -fx-cursor: hand;
+    -fx-padding: 4px;
+}
+
+.link-btn:hover {
+    -fx-text-fill: #1e293b;
+    -fx-underline: true;
+}

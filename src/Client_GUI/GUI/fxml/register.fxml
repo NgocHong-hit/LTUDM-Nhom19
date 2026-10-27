@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="CENTER" prefHeight="750.0" prefWidth="1000.0" styleClass="root-container" stylesheets="@../css/register.css" xmlns="http://javafx.com/javafx/17.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Client_GUI.Controller.Register">
+    <children>
+        <VBox alignment="CENTER_LEFT" maxWidth="620.0" spacing="18.0" styleClass="register-card">
+            <padding>
+                <Insets bottom="32.0" left="36.0" right="36.0" top="32.0" />
+            </padding>
+            <children>
+                <!-- Tiêu đề Form -->
+                <VBox spacing="4.0">
+                    <children>
+                        <Label styleClass="brand-title" text="Đăng ký tài khoản mới" />
+                        <Label styleClass="brand-subtitle" text="Điền thông tin để đăng ký tài khoản tham gia làm bài thi" />
+                    </children>
+                </VBox>
+
+                <!-- Lưới 2 cột nhập liệu -->
+                <GridPane hgap="16.0" vgap="14.0">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="50.0" />
+                        <ColumnConstraints percentWidth="50.0" />
+                    </columnConstraints>
+
+                    <children>
+                        <!-- Cột Trái 1: Họ và tên -->
+                        <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                            <children>
+                                <Label styleClass="form-label" text="Họ và tên" />
+                                <TextField fx:id="txtFullName" promptText="Nguyễn Văn A" styleClass="custom-input" />
+                            </children>
+                        </VBox>
+
+                        <!-- Cột Phải 1: Giới tính -->
+                        <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                            <children>
+                                <Label styleClass="form-label" text="Giới tính" />
+                                <ComboBox fx:id="cbGender" maxWidth="Infinity" styleClass="custom-input">
+                                    <items>
+                                        <FXCollections fx:factory="observableArrayList">
+                                            <String fx:value="Nam" />
+                                            <String fx:value="Nữ" />
+                                            <String fx:value="Khác" />
+                                        </FXCollections>
+                                    </items>
+                                </ComboBox>
+                            </children>
+                        </VBox>
+
+                        <!-- Cột Trái 2: Email / Username -->
+                        <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                            <children>
+                                <Label styleClass="form-label" text="Email tài khoản" />
+                                <TextField fx:id="txtEmail" promptText="nguyenvana@gmail.com" styleClass="custom-input" />
+                            </children>
+                        </VBox>
+
+                        <!-- Cột Phải 2: Ngày sinh -->
+                        <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                            <children>
+                                <Label styleClass="form-label" text="Ngày sinh" />
+                                <DatePicker fx:id="dpDob" maxWidth="Infinity" promptText="Chọn ngày sinh" styleClass="custom-input" />
+                            </children>
+                        </VBox>
+
+                        <!-- Cột Trái 3: Mật khẩu -->
+                        <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                            <children>
+                                <Label styleClass="form-label" text="Mật khẩu" />
+                                <PasswordField fx:id="txtPassword" promptText="Tối thiểu 6 ký tự" styleClass="custom-input" />
+                            </children>
+                        </VBox>
+
+                        <!-- Cột Phải 3: Xác nhận mật khẩu -->
+                        <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                            <children>
+                                <Label styleClass="form-label" text="Xác nhận mật khẩu" />
+                                <PasswordField fx:id="txtConfirmPassword" promptText="Nhập lại mật khẩu" styleClass="custom-input" />
+                            </children>
+                        </VBox>
+                    </children>
+                    <rowConstraints>
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                    </rowConstraints>
+                </GridPane>
+
+                <!-- Nhãn trạng thái -->
+                <Label fx:id="lblMessage" minHeight="18.0" wrapText="true" />
+
+                <!-- Nút Đăng ký -->
+                <Button fx:id="btnRegister" maxWidth="Infinity" onAction="#handleRegister" styleClass="btn-primary-blue" text="Đăng ký tài khoản" />
+
+                <!-- Nút quay lại đăng nhập -->
+                <HBox alignment="CENTER" spacing="6.0">
+                    <children>
+                        <Label style="-fx-text-fill: #64748b; -fx-font-size: 13px;" text="Đã có tài khoản?" />
+                        <Button onAction="#handleBackToLogin" styleClass="link-btn" text="Đăng nhập tại đây" />
+                    </children>
+                    <VBox.margin>
+                        <Insets top="2.0" />
+                    </VBox.margin>
+                </HBox>
+            </children>
+        </VBox>
+    </children>
+</VBox>

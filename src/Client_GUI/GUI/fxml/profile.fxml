@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="CENTER" prefHeight="750.0" prefWidth="1000.0" styleClass="root-container" stylesheets="@../css/profile.css" xmlns="http://javafx.com/javafx/17.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Client_GUI.Controller.Profile">
+    <children>
+        <VBox alignment="CENTER_LEFT" maxWidth="620.0" spacing="18.0" styleClass="profile-card">
+            <padding>
+                <Insets bottom="32.0" left="36.0" right="36.0" top="32.0" />
+            </padding>
+            <children>
+                <!-- Tiêu đề Form -->
+                <VBox spacing="4.0">
+                    <children>
+                        <Label styleClass="brand-title" text="Cập nhật thông tin cá nhân" />
+                        <Label styleClass="brand-subtitle" text="Quản lý thông tin tài khoản và đổi mật khẩu" />
+                    </children>
+                </VBox>
+
+                <!-- Lưới 2 cột nhập liệu -->
+                <GridPane hgap="16.0" vgap="14.0">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="50.0" />
+                        <ColumnConstraints percentWidth="50.0" />
+                    </columnConstraints>
+
+                    <children>
+                        <!-- Cột Trái 1: Họ và tên -->
+                        <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                            <children>
+                                <Label styleClass="form-label" text="Họ và tên" />
+                                <TextField fx:id="txtFullName" promptText="Nhập họ và tên" styleClass="custom-input" />
+                            </children>
+                        </VBox>
+
+                        <!-- Cột Phải 1: Email (Chỉ đọc) -->
+                        <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                            <children>
+                                <Label styleClass="form-label" text="Email tài khoản (không đổi)" />
+                                <TextField fx:id="txtEmail" editable="false" styleClass="custom-input" />
+                            </children>
+                        </VBox>
+
+                        <!-- Cột Trái 2: Giới tính -->
+                        <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                            <children>
+                                <Label styleClass="form-label" text="Giới tính" />
+                                <ComboBox fx:id="cbGender" maxWidth="Infinity" styleClass="custom-input" />
+                            </children>
+                        </VBox>
+
+                        <!-- Cột Phải 2: Ngày sinh -->
+                        <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                            <children>
+                                <Label styleClass="form-label" text="Ngày sinh" />
+                                <DatePicker fx:id="dpDob" maxWidth="Infinity" styleClass="custom-input" />
+                            </children>
+                        </VBox>
+
+                        <!-- Cột Trái 3: Mật khẩu mới -->
+                        <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                            <children>
+                                <Label styleClass="form-label" text="Mật khẩu mới (bỏ trống nếu không đổi)" />
+                                <PasswordField fx:id="txtNewPassword" promptText="••••••••" styleClass="custom-input" />
+                            </children>
+                        </VBox>
+
+                        <!-- Cột Phải 3: Xác nhận mật khẩu mới -->
+                        <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                            <children>
+                                <Label styleClass="form-label" text="Xác nhận mật khẩu mới" />
+                                <PasswordField fx:id="txtConfirmNewPassword" promptText="••••••••" styleClass="custom-input" />
+                            </children>
+                        </VBox>
+                    </children>
+                    <rowConstraints>
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                    </rowConstraints>
+                </GridPane>
+
+                <!-- Nhãn trạng thái -->
+                <Label fx:id="lblMessage" alignment="CENTER" minHeight="18.0" wrapText="true" />
+
+                <!-- Các nút hành động -->
+                <HBox alignment="CENTER_RIGHT" spacing="12.0">
+                    <children>
+                        <Button fx:id="btnBack" onAction="#handleBack" styleClass="btn-outline" text="Quay lại" />
+                        <Button fx:id="btnSave" onAction="#handleSaveProfile" styleClass="btn-primary-blue" text="Lưu thay đổi" />
+                    </children>
+                    <VBox.margin>
+                        <Insets top="4.0" />
+                    </VBox.margin>
+                </HBox>
+            </children>
+        </VBox>
+    </children>
+</VBox>

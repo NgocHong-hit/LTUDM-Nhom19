@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="CENTER" prefHeight="750.0" prefWidth="1000.0" styleClass="root-container" stylesheets="@../css/verify_otp.css" xmlns="http://javafx.com/javafx/17.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Client_GUI.Controller.OtpVerify">
+    <children>
+        <VBox alignment="CENTER" maxWidth="440.0" spacing="18.0" styleClass="otp-card">
+            <padding>
+                <Insets bottom="32.0" left="36.0" right="36.0" top="32.0" />
+            </padding>
+            <children>
+                <!-- Tiêu đề và hướng dẫn -->
+                <VBox alignment="CENTER" spacing="6.0">
+                    <children>
+                        <Label styleClass="brand-title" text="Xác thực tài khoản" />
+                        <Label styleClass="brand-subtitle" text="Mã xác thực gồm 6 chữ số đã được gửi tới email:" textAlignment="CENTER" wrapText="true" />
+                        <HBox alignment="CENTER" styleClass="email-badge">
+                            <children>
+                                <Label fx:id="lblEmailDisplay" style="-fx-font-weight: bold; -fx-text-fill: #1e293b;" text="email@example.com" />
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+
+                <!-- Hộp đếm ngược thời gian -->
+                <HBox alignment="CENTER" styleClass="timer-box">
+                    <children>
+                        <Label styleClass="timer-label" text="Thời gian hiệu lực mã:" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label fx:id="lblCountdown" styleClass="timer-value" text="10:00" />
+                    </children>
+                </HBox>
+
+                <!-- Ô nhập 6 chữ số OTP -->
+                <VBox spacing="6.0">
+                    <children>
+                        <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #475569;" text="Nhập mã OTP gồm 6 chữ số:" />
+                        <TextField fx:id="txtDigit1" promptText="000000" styleClass="otp-input" />
+                    </children>
+                </VBox>
+
+                <!-- Nhãn trạng thái lỗi / thành công -->
+                <Label fx:id="lblStatus" alignment="CENTER" minHeight="18.0" textAlignment="CENTER" wrapText="true" />
+
+                <!-- Nút Kích hoạt -->
+                <Button fx:id="btnActivate" maxWidth="Infinity" onAction="#handleVerifyOtp" styleClass="btn-primary-blue" text="Kích hoạt tài khoản" />
+
+                <!-- Các thao tác phụ: Gửi lại mã / Quay lại -->
+                <HBox alignment="CENTER" spacing="16.0">
+                    <children>
+                        <Button onAction="#handleResendOtp" styleClass="link-btn" text="Gửi lại mã OTP" />
+                        <Label style="-fx-text-fill: #cbd5e1;" text="|" />
+                        <Button onAction="#handleBackToRegister" styleClass="link-btn" text="Quay lại đăng ký" />
+                    </children>
+                    <VBox.margin>
+                        <Insets top="4.0" />
+                    </VBox.margin>
+                </HBox>
+            </children>
+        </VBox>
+    </children>
+</VBox>

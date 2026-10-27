@@ -1,0 +1,101 @@
+
+.root-container {
+    -fx-background-color: #f1f5f9;
+    -fx-font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.profile-card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 10px;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1px;
+    -fx-border-radius: 10px;
+    -fx-pref-width: 620px;
+    -fx-max-width: 620px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 10, 0, 0, 3);
+}
+
+.brand-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1e293b;
+}
+
+.brand-subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: #64748b;
+}
+
+.form-label {
+    -fx-font-size: 12.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #334155;
+}
+
+.custom-input {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cbd5e1;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 8px 12px;
+    -fx-pref-height: 38px;
+    -fx-font-size: 13px;
+    -fx-text-fill: #1e293b;
+}
+
+.custom-input:focused {
+    -fx-border-color: #2563eb;
+    -fx-background-color: #ffffff;
+}
+
+.custom-input:disabled,
+.custom-input[editable="false"] {
+    -fx-background-color: #f8fafc;
+    -fx-border-color: #e2e8f0;
+    -fx-text-fill: #64748b;
+}
+
+.combo-box .list-cell {
+    -fx-text-fill: #1e293b;
+    -fx-padding: 0 0 0 6px;
+}
+
+.btn-primary-blue {
+    -fx-background-color: #2563eb;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-font-size: 13.5px;
+    -fx-pref-height: 40px;
+    -fx-background-radius: 6px;
+    -fx-cursor: hand;
+    -fx-padding: 0 20px;
+}
+
+.btn-primary-blue:hover {
+    -fx-background-color: #1d4ed8;
+}
+
+.btn-primary-blue:disabled {
+    -fx-background-color: #94a3b8;
+    -fx-opacity: 0.8;
+}
+
+.btn-outline {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cbd5e1;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-text-fill: #334155;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-pref-height: 40px;
+    -fx-cursor: hand;
+    -fx-padding: 0 18px;
+}
+
+.btn-outline:hover {
+    -fx-background-color: #f8fafc;
+    -fx-border-color: #94a3b8;
+}

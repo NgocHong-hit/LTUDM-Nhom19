@@ -1,0 +1,170 @@
+
+.exam-root {
+    -fx-background-color: #f1f5f9;
+    -fx-font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Header phòng thi */
+.top-bar {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 0 0 1px 0;
+    -fx-padding: 12px 24px;
+}
+
+.page-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1e293b;
+}
+
+.page-subtitle {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: #64748b;
+}
+
+.timer-badge {
+    -fx-background-color: #f8fafc;
+    -fx-border-color: #cbd5e1;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 6px 14px;
+    -fx-font-size: 13.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1e293b;
+}
+
+/* Khung nội dung câu hỏi */
+.content-box {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 24px 28px;
+}
+
+.question-text {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1e293b;
+    -fx-line-spacing: 4px;
+}
+
+/* Các phương án trả lời dạng thẻ bấm */
+.opt-row {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 12px 16px;
+    -fx-font-size: 14px;
+    -fx-text-fill: #1e293b;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.opt-row:hover {
+    -fx-background-color: #f8fafc;
+    -fx-border-color: #cbd5e1;
+}
+
+.opt-row:selected {
+    -fx-background-color: #f8fafc;
+    -fx-border-color: #334155;
+    -fx-text-fill: #0f172a;
+    -fx-font-weight: bold;
+}
+
+.opt-row:focused {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+/* Xóa bỏ hiệu ứng màu xanh của nút radio */
+.opt-row .radio {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #94a3b8;
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
+    -fx-padding: 2.5px;
+    -fx-background-insets: 0;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.opt-row:hover .radio {
+    -fx-border-color: #64748b;
+}
+
+.opt-row:focused .radio {
+    -fx-border-color: #334155;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.opt-row:selected .radio {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #1e293b;
+    -fx-border-width: 1.5px;
+}
+
+.opt-row .dot {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 10px;
+    -fx-padding: 4px;
+}
+
+.opt-row:selected .dot {
+    -fx-background-color: #1e293b;
+}
+
+/* Nút hành động */
+.btn-primary-blue {
+    -fx-background-color: #2563eb;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-font-size: 13.5px;
+    -fx-background-radius: 6px;
+    -fx-cursor: hand;
+    -fx-padding: 8px 18px;
+}
+
+.btn-primary-blue:hover {
+    -fx-background-color: #1d4ed8;
+}
+
+.btn-primary-blue:disabled {
+    -fx-background-color: #94a3b8;
+    -fx-opacity: 0.7;
+    -fx-cursor: default;
+}
+
+.btn-secondary-blue {
+    -fx-background-color: #f0f7ff;
+    -fx-border-color: #bfdbfe;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-text-fill: #2563eb;
+    -fx-font-weight: bold;
+    -fx-font-size: 13.5px;
+    -fx-cursor: hand;
+    -fx-padding: 8px 18px;
+}
+
+.btn-secondary-blue:hover {
+    -fx-background-color: #dbeafe;
+}
+
+.btn-secondary-blue:disabled {
+    -fx-background-color: #f1f5f9;
+    -fx-border-color: #e2e8f0;
+    -fx-text-fill: #94a3b8;
+    -fx-cursor: default;
+}

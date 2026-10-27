@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="CENTER" prefHeight="750.0" prefWidth="1000.0" styleClass="root-container" stylesheets="@../css/login.css" xmlns="http://javafx.com/javafx/17.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Client_GUI.Controller.Login">
+    <children>
+        <VBox alignment="CENTER_LEFT" maxWidth="420.0" spacing="18.0" styleClass="login-card">
+            <padding>
+                <Insets bottom="32.0" left="32.0" right="32.0" top="32.0" />
+            </padding>
+            <children>
+                <!-- Tiêu đề thương hiệu và đăng nhập -->
+                <VBox spacing="4.0">
+                    <children>
+                        <Label styleClass="brand-title" text="Đăng nhập tài khoản" />
+                        <Label styleClass="brand-subtitle" text="Chào mừng bạn quay lại hệ thống thi trắc nghiệm" />
+                    </children>
+                </VBox>
+
+                <!-- Trường nhập Email / Username -->
+                <VBox spacing="6.0">
+                    <children>
+                        <Label styleClass="form-label" text="Email hoặc tên đăng nhập" />
+                        <TextField fx:id="txtEmail" onAction="#handleLogin" promptText="nhapemail@example.com" styleClass="custom-input" />
+                    </children>
+                </VBox>
+
+                <!-- Trường nhập Mật khẩu -->
+                <VBox spacing="6.0">
+                    <children>
+                        <Label styleClass="form-label" text="Mật khẩu" />
+                        <PasswordField fx:id="txtPassword" onAction="#handleLogin" promptText="••••••••" styleClass="custom-input" />
+                    </children>
+                </VBox>
+
+                <!-- Thông báo phản hồi -->
+                <Label fx:id="lblMessage" minHeight="18.0" wrapText="true" />
+
+                <!-- Nút Đăng nhập -->
+                <Button fx:id="btnLogin" maxWidth="Infinity" onAction="#handleLogin" styleClass="btn-primary-blue" text="Đăng nhập" />
+
+                <!-- Chuyển sang Đăng ký -->
+                <HBox alignment="CENTER" spacing="6.0">
+                    <children>
+                        <Label style="-fx-text-fill: #64748b; -fx-font-size: 13px;" text="Chưa có tài khoản?" />
+                        <Button onAction="#goToRegister" styleClass="link-btn" text="Đăng ký ngay" />
+                    </children>
+                    <VBox.margin>
+                        <Insets top="4.0" />
+                    </VBox.margin>
+                </HBox>
+            </children>
+        </VBox>
+    </children>
+</VBox>
