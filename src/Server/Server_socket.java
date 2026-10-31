@@ -21,7 +21,7 @@ public class Server_socket {
         this.rsaKeyPair = CryptoUtil.generateRSAKeyPair();
         this.serverSocket = new ServerSocket(port, 50, InetAddress.getByName("0.0.0.0"));
         this.threadPool = Executors.newFixedThreadPool(20);
-        System.out.println("Quiz Server đang lắng nghe tại Cổng: " + port);
+        System.out.println("Server đang lắng nghe tại Cổng: " + port);
     }
 
     public void start() {

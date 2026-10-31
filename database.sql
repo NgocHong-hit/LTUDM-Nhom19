@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS questions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     quiz_id INT NOT NULL,
     content TEXT NOT NULL,
-    image_url VARCHAR(255) NULL,                  -- hỗ trợ hình ảnh (điểm cộng)
+    image_url VARCHAR(255) NULL,                  
     FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE
 );
 

@@ -19,11 +19,10 @@ public class Client {
     
     private static Client instance;
 
-    // Private constructor ngăn không cho gọi 'new Client()' từ bên ngoài
     public Client(String serverAddress, int serverPort) {
         this.serverAddress = serverAddress;
         this.serverPort = serverPort;
-        this.connectToServer(); // Chỉ gọi kết nối đúng 1 lần khi tạo Instance duy nhất
+        this.connectToServer(); 
     }
 
     public static synchronized Client getInstance() {
@@ -34,7 +33,6 @@ public class Client {
     }
 
     public synchronized boolean connectToServer() {
-        // Nếu đã có kết nối và Socket đang mở thì không kết nối lại nữa
         if (socket != null && !socket.isClosed() && socket.isConnected()) {
             return true;
         }

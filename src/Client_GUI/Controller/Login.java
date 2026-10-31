@@ -46,16 +46,17 @@ import javafx.stage.Stage;
 
         if (response != null && response.startsWith("LOGIN_SUCCESS")) {
             try {
-                // Tách lấy tên người dùng từ phản hồi LOGIN_SUCCESS|fullName
                 String userName = response.contains("|") ? response.split("\\|")[1] : "Thí sinh";
 
-                // Nạp giao diện Trang chủ home.fxml
+                // --- LƯU SESSION ĐĂNG NHẬP ---
+                Model.User loggedInUser = new Model.User();
+                loggedInUser.setEmail(email);
+                loggedInUser.setFullName(userName);
+                Model.User.setCurrentUser(loggedInUser); // Lưu vào static session
+
+                // Nạp giao diện home.fxml
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/home.fxml"));
                 Parent root = loader.load();
-
-                // Lấy MainDashboard Controller để truyền tên người dùng lên Header
-                MainDashboard dashboardController = loader.getController();
-                // (Nếu MainDashboard có hàm setUserName thì gọi tại đây)
 
                 Stage stage = (Stage) btnLogin.getScene().getWindow();
                 stage.setScene(new Scene(root, 1000, 750));
@@ -65,7 +66,8 @@ import javafx.stage.Stage;
                 lblMessage.setText("Lỗi khi chuyển sang màn hình Trang chủ!");
                 lblMessage.setStyle("-fx-text-fill: #ef4444;");
             }
-        } else {
+
+        }else {
             String errorMsg = (response != null && response.contains("|")) ? response.split("\\|")[1] : "Đăng nhập thất bại!";
             lblMessage.setText(errorMsg);
             lblMessage.setStyle("-fx-text-fill: #ef4444;");

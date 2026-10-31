@@ -48,7 +48,7 @@
                                     <VBox spacing="4.0">
                                         <children>
                                             <Label styleClass="field-label" text="Tên bộ đề:" />
-                                            <TextField fx:id="txtQuizTitle" promptText="Ví dụ: Kiểm tra Kiến thức Lập trình Java Cơ bản" styleClass="input-flat" />
+                                            <TextField fx:id="txtQuizTitle"  styleClass="input-flat" />
                                         </children>
                                     </VBox>
 
@@ -78,7 +78,7 @@
                                     <VBox spacing="4.0">
                                         <children>
                                             <Label styleClass="field-label" text="Mô tả / Ghi chú cho thí sinh:" />
-                                            <TextArea fx:id="txtQuizDescription" prefRowCount="2" promptText="Ghi chú ngắn gọn cho thí sinh..." styleClass="input-flat" wrapText="true" />
+                                            <TextArea fx:id="txtQuizDescription" prefRowCount="2"  styleClass="input-flat" wrapText="true" />
                                         </children>
                                     </VBox>
                                 </children>

@@ -10,6 +10,8 @@ public class User implements Serializable {
     private String dob;
     private String password;
 
+    private static User currentUser;
+
     public User() {}
 
     public User(String fullName, String gender, String email, String dob, String password) {
@@ -27,6 +29,18 @@ public class User implements Serializable {
         this.email = email;
         this.dob = dob;
         this.password = password;
+    }
+
+    public static void setCurrentUser(User user) {
+        currentUser = user;
+    }
+
+    public static User getCurrentUser() {
+        return currentUser;
+    }
+
+    public static void clearSession() {
+        currentUser = null;
     }
 
     public int getId() { return id; }

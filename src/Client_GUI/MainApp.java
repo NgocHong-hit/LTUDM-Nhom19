@@ -12,7 +12,7 @@ public class MainApp extends Application {
     public void start(Stage primaryStage) throws Exception {
         // Nạp file FXML Đăng ký
         Parent root = FXMLLoader.load(getClass().getResource("/fxml/login.fxml"));
-        primaryStage.setTitle("Đăng ký tài khoản - Quiz Application");
+        primaryStage.setTitle("Quiz Application");
         primaryStage.setScene(new Scene(root, 1000, 750));
         primaryStage.show();
     }

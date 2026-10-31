@@ -212,11 +212,11 @@
     -fx-background-color: #2563eb;
     -fx-text-fill: #ffffff;
     -fx-font-weight: bold;
-    -fx-font-size: 12px;
+    -fx-font-size: 11px;
     -fx-background-radius: 4px;
     -fx-cursor: hand;
-    -fx-padding: 5px 12px;
-    -fx-min-width: 68px;
+    -fx-padding: 4px 5px;
+    -fx-min-width: 70px;
 }
 
 .btn-table-take:hover {
@@ -231,10 +231,10 @@
     -fx-background-radius: 4px;
     -fx-text-fill: #334155;
     -fx-font-weight: bold;
-    -fx-font-size: 12px;
+    -fx-font-size: 11px;
     -fx-cursor: hand;
-    -fx-padding: 5px 12px;
-    -fx-min-width: 46px;
+    -fx-padding: 4px 5px;
+    -fx-min-width: 38px;
 }
 
 .btn-table-edit:hover {
@@ -266,4 +266,28 @@
 .btn-table-rank:hover {
     -fx-background-color: #dcfce7;
     -fx-border-color: #86efac;
+}
+
+/* Style nút Tên người dùng theo phong cách nút Tạo bộ đề */
+.btn-user-profile {
+    -fx-background-color: #eff6ff;
+    -fx-text-fill: #2563eb;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-background-radius: 8px;
+    -fx-border-radius: 8px;
+    -fx-border-color: #bfdbfe;
+    -fx-border-width: 1px;
+    -fx-padding: 8px 18px;
+    -fx-cursor: hand;
+}
+
+.btn-user-profile:hover {
+    -fx-background-color: #dbeafe;
+    -fx-text-fill: #1d4ed8;
+    -fx-border-color: #93c5fd;
+}
+
+.btn-user-profile:pressed {
+    -fx-background-color: #bfdbfe;
 }

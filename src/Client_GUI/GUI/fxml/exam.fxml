@@ -33,7 +33,7 @@
             </VBox.margin>
             <children>
                 <!-- Nội dung đề bài -->
-                <Label fx:id="lblQuestionContent" styleClass="question-text" text="Đang tải nội dung câu hỏi..." wrapText="true" />
+                <Label fx:id="lblQuestionContent" styleClass="question-text"  wrapText="true" />
                 
                 <!-- Ảnh minh họa nếu có -->
                 <ImageView fx:id="imgQuestion" fitHeight="220.0" fitWidth="420.0" managed="false" preserveRatio="true" visible="false" />

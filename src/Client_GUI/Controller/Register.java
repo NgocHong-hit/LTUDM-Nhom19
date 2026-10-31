@@ -25,7 +25,14 @@ public class Register {
     @FXML private Label lblMessage;
     @FXML private Button btnRegister;
 
-    private Client client;
+    private Client client = Client.getInstance();
+
+    @FXML
+    public void initialize() {
+        if (client == null) {
+            client = Client.getInstance();
+        }
+    }
 
 
     @FXML 
