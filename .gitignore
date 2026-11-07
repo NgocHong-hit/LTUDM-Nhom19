@@ -1,4 +1,5 @@
 config.properties
+server_private.key
 *.class
 target/
 *.log

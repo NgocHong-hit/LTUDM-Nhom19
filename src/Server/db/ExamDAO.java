@@ -91,80 +91,147 @@ public  class ExamDAO{
     }
 
     // Server tự chấm điểm 1 câu hỏi và ghi nhận vào exam_answers
-    public static boolean submitAnswer(int sessionId, int questionId, int selectedOptionId) {
-        String sqlCheck = "SELECT is_correct FROM options WHERE id = ? AND question_id = ?";
-        String sqlSave = "INSERT INTO exam_answers (session_id, question_id, selected_option_id, is_correct) VALUES (?, ?, ?, ?)";
-        
-        boolean isCorrect = false;
-        try (Connection conn = DatabaseConnection.getConnection()) {
-            if (selectedOptionId > 0) {
-                PreparedStatement stmtCheck = conn.prepareStatement(sqlCheck);
-                stmtCheck.setInt(1, selectedOptionId);
-                stmtCheck.setInt(2, questionId);
-                ResultSet rs = stmtCheck.executeQuery();
-                if (rs.next()) {
-                    isCorrect = rs.getBoolean("is_correct");
-                }
-            }
-            PreparedStatement stmtSave = conn.prepareStatement(sqlSave);
-            stmtSave.setInt(1, sessionId);
-            stmtSave.setInt(2, questionId);
-            if (selectedOptionId > 0) stmtSave.setInt(3, selectedOptionId);
-            else stmtSave.setNull(3, Types.INTEGER);
-            stmtSave.setBoolean(4, isCorrect);
-            stmtSave.executeUpdate();
+    public static boolean submitAnswer(int sessionId, int questionId, int selectedOptionId) throws SQLException {
+        String sqlSession = "SELECT quiz_id FROM exam_sessions "
+                + "WHERE id = ? AND submitted_at IS NULL FOR UPDATE";
+        String sqlQuestion = "SELECT 1 FROM questions WHERE id = ? AND quiz_id = ?";
+        String sqlExisting = "SELECT 1 FROM exam_answers WHERE session_id = ? AND question_id = ?";
+        String sqlOption = "SELECT is_correct FROM options WHERE id = ? AND question_id = ?";
+        String sqlSave = "INSERT INTO exam_answers "
+                + "(session_id, question_id, selected_option_id, is_correct) VALUES (?, ?, ?, ?)";
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                int quizId;
+                try (PreparedStatement stmt = conn.prepareStatement(sqlSession)) {
+                    stmt.setInt(1, sessionId);
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (!rs.next()) {
+                            throw new SQLException("Phiên thi không tồn tại hoặc đã nộp.");
+                        }
+                        quizId = rs.getInt("quiz_id");
+                    }
+                }
+
+                try (PreparedStatement stmt = conn.prepareStatement(sqlQuestion)) {
+                    stmt.setInt(1, questionId);
+                    stmt.setInt(2, quizId);
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (!rs.next()) {
+                            throw new SQLException("Câu hỏi không thuộc đề thi của phiên này.");
+                        }
+                    }
+                }
+
+                try (PreparedStatement stmt = conn.prepareStatement(sqlExisting)) {
+                    stmt.setInt(1, sessionId);
+                    stmt.setInt(2, questionId);
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (rs.next()) {
+                            throw new SQLException("Câu hỏi này đã được trả lời trong phiên thi.");
+                        }
+                    }
+                }
+
+                boolean isCorrect = false;
+                if (selectedOptionId > 0) {
+                    try (PreparedStatement stmt = conn.prepareStatement(sqlOption)) {
+                        stmt.setInt(1, selectedOptionId);
+                        stmt.setInt(2, questionId);
+                        try (ResultSet rs = stmt.executeQuery()) {
+                            if (!rs.next()) {
+                                throw new SQLException("Đáp án không thuộc câu hỏi đã chọn.");
+                            }
+                            isCorrect = rs.getBoolean("is_correct");
+                        }
+                    }
+                }
+
+                // Server đối chiếu đáp án đúng và ghi kết quả trong cùng transaction.
+                try (PreparedStatement stmt = conn.prepareStatement(sqlSave)) {
+                    stmt.setInt(1, sessionId);
+                    stmt.setInt(2, questionId);
+                    if (selectedOptionId > 0) stmt.setInt(3, selectedOptionId);
+                    else stmt.setNull(3, Types.INTEGER);
+                    stmt.setBoolean(4, isCorrect);
+                    stmt.executeUpdate();
+                }
+                conn.commit();
+                return isCorrect;
+            } catch (SQLException | RuntimeException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
         }
-        return isCorrect;
     }
 
     // Hoàn tất bài thi
-    public static double finishExamSession(int sessionId, int completionTimeSeconds) {
+    public static double finishExamSession(int sessionId) throws SQLException {
         String sqlCount = "SELECT COUNT(*) AS total_correct FROM exam_answers WHERE session_id = ? AND is_correct = TRUE";
-        String sqlQuizInfo = "SELECT q.total_score, (SELECT COUNT(*) FROM questions WHERE quiz_id = q.id) AS total_questions "
-                           + "FROM quizzes q JOIN exam_sessions es ON q.id = es.quiz_id WHERE es.id = ?";
-        String sqlUpdate = "UPDATE exam_sessions SET submitted_at = CURRENT_TIMESTAMP, score = ?, completion_time_seconds = ? WHERE id = ?";
+        String sqlQuizInfo = "SELECT q.total_score, "
+                           + "TIMESTAMPDIFF(SECOND, es.started_at, CURRENT_TIMESTAMP) AS elapsed_seconds, "
+                           + "(SELECT COUNT(*) FROM questions WHERE quiz_id = q.id) AS total_questions "
+                           + "FROM quizzes q JOIN exam_sessions es ON q.id = es.quiz_id "
+                           + "WHERE es.id = ? AND es.submitted_at IS NULL FOR UPDATE";
+        String sqlUpdate = "UPDATE exam_sessions SET submitted_at = CURRENT_TIMESTAMP, "
+                + "score = ?, completion_time_seconds = ? WHERE id = ? AND submitted_at IS NULL";
 
-        double finalScore = 0.0;
         try (Connection conn = DatabaseConnection.getConnection()) {
-            // Lấy thông tin tổng điểm bài thi và số lượng câu hỏi
-            PreparedStatement stmtInfo = conn.prepareStatement(sqlQuizInfo);
-            stmtInfo.setInt(1, sessionId);
-            ResultSet rsInfo = stmtInfo.executeQuery();
-            
-            double totalScore = 10.0;
-            int totalQuestions = 1;
-            if (rsInfo.next()) {
-                totalScore = rsInfo.getDouble("total_score");
-                totalQuestions = rsInfo.getInt("total_questions");
+            conn.setAutoCommit(false);
+            try {
+                double totalScore;
+                int totalQuestions;
+                int elapsedSeconds;
+                try (PreparedStatement stmt = conn.prepareStatement(sqlQuizInfo)) {
+                    stmt.setInt(1, sessionId);
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (!rs.next()) {
+                            throw new SQLException("Phiên thi không tồn tại hoặc đã được nộp.");
+                        }
+                        totalScore = rs.getDouble("total_score");
+                        totalQuestions = rs.getInt("total_questions");
+                        elapsedSeconds = rs.getInt("elapsed_seconds");
+                    }
+                }
+
+                int totalCorrect;
+                try (PreparedStatement stmt = conn.prepareStatement(sqlCount)) {
+                    stmt.setInt(1, sessionId);
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (!rs.next()) {
+                            throw new SQLException("Không thể tính số câu trả lời đúng.");
+                        }
+                        totalCorrect = rs.getInt("total_correct");
+                    }
+                }
+
+                double finalScore = 0.0;
+                if (totalQuestions > 0) {
+                    finalScore = (double) totalCorrect / totalQuestions * totalScore;
+                    finalScore = Math.round(finalScore * 100.0) / 100.0;
+                }
+
+                // Tính thời gian tại server/database để client không thể giả mạo thứ hạng.
+                try (PreparedStatement stmt = conn.prepareStatement(sqlUpdate)) {
+                    stmt.setDouble(1, finalScore);
+                    stmt.setInt(2, elapsedSeconds);
+                    stmt.setInt(3, sessionId);
+                    if (stmt.executeUpdate() != 1) {
+                        throw new SQLException("Không thể cập nhật kết quả phiên thi.");
+                    }
+                }
+                conn.commit();
+                return finalScore;
+            } catch (SQLException | RuntimeException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
             }
-
-            // Đếm số câu đúng
-            PreparedStatement stmtCount = conn.prepareStatement(sqlCount);
-            stmtCount.setInt(1, sessionId);
-            ResultSet rsCount = stmtCount.executeQuery();
-            int totalCorrect = 0;
-            if (rsCount.next()) totalCorrect = rsCount.getInt("total_correct");
-
-            // Tính điểm: (Số câu đúng / Tổng số câu) * Tổng điểm bài thi
-            if (totalQuestions > 0) {
-                finalScore = (double) totalCorrect / totalQuestions * totalScore;
-                finalScore = Math.round(finalScore * 100.0) / 100.0; // Làm tròn 2 chữ số thập phân
-            }
-
-            // Cập nhật điểm & thời gian thi vào DB
-            PreparedStatement stmtUpdate = conn.prepareStatement(sqlUpdate);
-            stmtUpdate.setDouble(1, finalScore);
-            stmtUpdate.setInt(2, completionTimeSeconds);
-            stmtUpdate.setInt(3, sessionId);
-            stmtUpdate.executeUpdate();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-        return finalScore;
     }
 
     public static int getQuizIdBySession(int sessionId) {

@@ -8,7 +8,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class Register {
@@ -20,8 +19,6 @@ public class Register {
     @FXML private PasswordField txtPassword;
     @FXML private PasswordField txtConfirmPassword;
     
-    @FXML private VBox otpBox;
-    @FXML private TextField txtOtp;
     @FXML private Label lblMessage;
     @FXML private Button btnRegister;
 
@@ -59,20 +56,16 @@ public class Register {
             return;
         }
 
-        // Trong Register.java - tại hàm xử lý nút Đăng ký tài khoản:
         String response = client.sendRequest("REQUEST_OTP|" + email);
 
-        // Sửa điều kiện: Chấp nhận nếu phản hồi bắt đầu bằng "SUCCESS" HOẶC chứa "OTP Sent"
-        if (response != null && (response.startsWith("SUCCESS") || response.contains("OTP Sent"))) {
+        if (response != null && response.startsWith("SEND_OTP_SUCCESS")) {
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/verify_otp.fxml"));
                 Parent root = loader.load();
 
-                // Truyền dữ liệu sang OtpVerify Controller
                 OtpVerify controller = loader.getController();
-                controller.setRegisterData(fullName, gender, email, dob.toString(), password);
+                controller.setRegistrationData(fullName, gender, email, dob.toString(), password);
 
-                // Chuyển Scene trên cửa sổ hiện tại
                 Stage stage = (Stage) btnRegister.getScene().getWindow();
                 stage.setScene(new Scene(root, 1000, 750));
                 stage.show();
@@ -81,33 +74,7 @@ public class Register {
                 showMessage("Lỗi khi tải giao diện xác thực OTP!", true);
             }
         } else {
-            // Nếu thất bại thật sự thì mới báo lỗi ra giao diện
             String errorMsg = (response != null && response.contains("|")) ? response.split("\\|")[1] : response;
-            showMessage(errorMsg, true);
-        }
-    }
-
-    @FXML 
-        private void handleVerifyOtp(ActionEvent event) {
-        String otp = txtOtp.getText().trim();
-        if (otp.isEmpty() || otp.length() != 6) {
-            showMessage("Vui lòng nhập đủ 6 chữ số OTP!", true);
-            return;
-        }
-
-        String fullName = txtFullName.getText().trim();
-        String gender = cbGender.getValue();
-        String email = txtEmail.getText().trim();
-        String dob = dpDob.getValue().toString();
-        String password = txtPassword.getText();
-
-        String request = String.format("REGISTER|%s|%s|%s|%s|%s|%s", fullName, gender, email, dob, password, otp);
-        String response = client.sendRequest(request);
-
-        if (response != null && response.startsWith("REGISTER_SUCCESS")) {
-            showMessage("Đăng ký tài khoản thành công!", false);
-        } else {
-            String errorMsg = (response != null && response.contains("|")) ? response.split("\\|")[1] : "Mã OTP không đúng hoặc hết hạn!";
             showMessage(errorMsg, true);
         }
     }

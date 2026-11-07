@@ -256,5 +256,38 @@ public class QuizDAO {
         }
     }
 
-    
+    // Lấy số đề và điểm cực trị của các lượt thi đã nộp để console hiển thị.
+    public static int getTotalQuizCount() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM quizzes";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        throw new SQLException("Không thể đọc tổng số bộ đề.");
+    }
+
+    public static double getHighestSubmittedScore() throws SQLException {
+        return getScoreExtreme("MAX");
+    }
+
+    public static double getLowestSubmittedScore() throws SQLException {
+        return getScoreExtreme("MIN");
+    }
+
+    private static double getScoreExtreme(String aggregate) throws SQLException {
+        String sql = "SELECT COALESCE(" + aggregate
+                + "(score), 0.00) FROM exam_sessions WHERE submitted_at IS NOT NULL";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getDouble(1);
+            }
+        }
+        throw new SQLException("Không thể đọc thống kê điểm.");
+    }
+
 }

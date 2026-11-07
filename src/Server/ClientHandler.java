@@ -1,12 +1,19 @@
 package Server;
 
 import common.CryptoUtil;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.crypto.SecretKey;
 import com.google.gson.Gson;
@@ -21,6 +28,9 @@ public class ClientHandler implements Runnable {
     private Server_socket server;
     private SecretKey aesKey;
     private UserDAO userDAO;
+    private volatile String authenticatedEmail;
+    private final Set<Integer> activeExamSessions =
+            Collections.synchronizedSet(new HashSet<>());
     private static final Gson gson = new Gson();
 
     public ClientHandler(Socket clientSocket, KeyPair rsaKeyPair, Server_socket server) {
@@ -33,33 +43,30 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try (
-            PrintWriter output = new PrintWriter(clientSocket.getOutputStream(), true);
-            BufferedReader input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), "UTF-8"))
+            BufferedReader input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8));
+            PrintWriter output = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream(), StandardCharsets.UTF_8), true)
         ) {
-            // 1. Gửi RSA Public Key cho Client dưới dạng String Base64
-            String publicKeyStr = CryptoUtil.publicKeyToString(rsaKeyPair.getPublic());
-            output.println(publicKeyStr);
+            // 1. [TRAO ĐỔI KHÓA] Gửi RSA Public Key dạng Base64 cho Client
+            output.println(Base64.getEncoder().encodeToString(rsaKeyPair.getPublic().getEncoded()));
 
-            // 2. Nhận Encrypted AES Key và dùng RSA Private Key để giải mã
+            // 2. Nhận khóa AES đã được mã hóa bằng RSA từ Client và giải mã
             String encryptedAESKey = input.readLine();
             if (encryptedAESKey == null || encryptedAESKey.isEmpty()) return;
 
             String aesKeyStr = CryptoUtil.decryptRSA(encryptedAESKey, rsaKeyPair.getPrivate());
             this.aesKey = CryptoUtil.stringToAESKey(aesKeyStr);
 
-            // 3. Vòng lặp nhận dữ liệu đã mã hóa AES từ Client
-            while (true) {
-                String encryptedRequest = input.readLine();
-                if (encryptedRequest == null) break;
-
-                // Giải mã Request bằng AES
+            // 3. Vòng lặp nhận và xử lý request mã hóa AES
+            String encryptedRequest;
+            while ((encryptedRequest = input.readLine()) != null) {
+                // Giải mã Request
                 String request = CryptoUtil.decryptAES(encryptedRequest, aesKey);
                 System.out.println("Request nhận được: " + request);
 
-                // Xử lý request (ví dụ: LOGIN, REGISTER...)
+                // Xử lý Request (LOGIN, CREATE_QUIZ,...)
                 String response = processRequest(request);
 
-                // Mã hóa Response bằng AES và gửi lại Client
+                // Mã hóa Response bằng AES và gửi về Client
                 String encryptedResponse = CryptoUtil.encryptAES(response, aesKey);
                 output.println(encryptedResponse);
             }
@@ -69,7 +76,7 @@ public class ClientHandler implements Runnable {
             server.removeClient(this);
             closeSocket();
         }
-    }
+        }
 
     private String processRequest(String request) {
         String[] parts = request.split("\\|", -1);
@@ -77,46 +84,45 @@ public class ClientHandler implements Runnable {
 
         switch (action) {
             case "REQUEST_OTP":
-            String emailForOTP = parts[1];
-            // Kiểm tra Email đã tồn tại trong CSDL chưa
-            if (userDAO.isEmail(emailForOTP)) {
-                return "ERROR|Email này đã được sử dụng!";
-            }
-            // Tạo mã OTP 6 số & Lưu vào CSDL/Bộ nhớ
-            String otpCode = EmailUtil.generateOTP();
+                if (parts.length != 2 || parts[1].trim().isEmpty()) {
+                    return "ERROR|Email đăng ký không hợp lệ!";
+                }
+                String emailForOTP = parts[1].trim();
+                if (userDAO.isEmail(emailForOTP)) {
+                    return "ERROR|Email này đã được sử dụng!";
+                }
 
-            // userDAO.saveOTP(emailForOTP, otpCode);
-            
-            // Gửi email cho người dùng
-            boolean isSent = EmailUtil.sendOTP(emailForOTP, otpCode);
-            if (isSent) {
-                return "SEND_OTP_SUCCESS|OTP Sent";
-            } else {
+                String otpCode = EmailUtil.generateOTP();
+                if (!UserDAO.saveOTP(emailForOTP, otpCode)) {
+                    return "ERROR|Không thể lưu mã OTP. Vui lòng thử lại!";
+                }
+
+                if (EmailUtil.sendOTP(emailForOTP, otpCode)) {
+                    return "SEND_OTP_SUCCESS|OTP Sent";
+                }
                 return "ERROR|Không thể gửi Email OTP. Vui lòng kiểm tra lại Email!";
-            }
 
-            case "REGISTER":
-                //REGISTER|fullName|gender|email|dob|password|otp
-                String fullName = parts[1];
-                String gender = parts[2];
-                String email = parts[3];
-                String dob = parts[4];
-                String password = parts[5];
-                String inputOtp = parts[6];
-
-                // Kiểm tra mã OTP
-                boolean isValidOtp = userDAO.verifyOTP(email, inputOtp);
-                if (!isValidOtp) {
-                    return "REGISTER_FAIL|Mã OTP không đúng hoặc đã hết hạn!";
+            case "VERIFY_OTP":
+                if (parts.length != 7) {
+                    return "REGISTER_FAIL|Thông tin xác thực OTP không hợp lệ!";
                 }
-
-                // Thêm tài khoản mới vào CSDL
-                boolean isSuccess = userDAO.registerUser(fullName, gender, email, dob, password);
-                if (isSuccess) {
+                if (parts[1].trim().isEmpty() || parts[2].trim().isEmpty()
+                        || parts[3].trim().isEmpty() || parts[5].isEmpty()
+                        || parts[5].length() < 6 || !parts[6].matches("\\d{6}")
+                        || !(parts[2].equals("Nam") || parts[2].equals("Nữ")
+                                || parts[2].equals("Khác"))) {
+                    return "REGISTER_FAIL|Thông tin đăng ký không hợp lệ!";
+                }
+                try {
+                    java.sql.Date.valueOf(parts[4]);
+                } catch (IllegalArgumentException e) {
+                    return "REGISTER_FAIL|Ngày sinh không hợp lệ!";
+                }
+                if (userDAO.verifyOTPAndRegister(
+                        parts[1], parts[2], parts[3], parts[4], parts[5], parts[6])) {
                     return "REGISTER_SUCCESS|Tạo tài khoản thành công";
-                } else {
-                    return "REGISTER_FAIL|Lỗi hệ thống khi lưu thông tin người dùng!";
                 }
+                return "REGISTER_FAIL|Mã OTP không đúng hoặc đã hết hạn!";
 
             case "LOGIN":
                 if (parts.length < 3) {
@@ -125,20 +131,38 @@ public class ClientHandler implements Runnable {
                 String loginEmail = parts[1];
                 String loginPass = parts[2];
 
-                String loginSuccess = userDAO.Login(loginEmail, loginPass);
-                if ("UNVERIFIED".equals(loginSuccess)) {
-                    return "LOGIN_FAIL|Tài khoản chưa được kích hoạt xác thực OTP!";
-                } else if (loginSuccess != null) {
+                clearAuthentication();
+                try {
+                    String loginSuccess = userDAO.Login(loginEmail, loginPass);
+                    if ("UNREGISTERED".equals(loginSuccess)) {
+                        return "LOGIN_FAIL|Tài khoản chưa đăng ký!";
+                    }
+                    if (loginSuccess == null) {
+                        return "LOGIN_FAIL|Tài khoản hoặc mật khẩu không chính xác!";
+                    }
+                    // Chỉ kiểm tra trạng thái khóa sau khi thông tin đăng nhập hợp lệ.
+                    if (UserDAO.isBlocked(loginEmail, "login")) {
+                        return "LOGIN_FAIL|Tài khoản đã bị khóa đăng nhập!";
+                    }
+                    authenticatedEmail = loginEmail;
                     return "LOGIN_SUCCESS|" + loginEmail;
-                } else {
-                    return "LOGIN_FAIL|Tài khoản hoặc mật khẩu không chính xác!";
+                } catch (Exception e) {
+                    System.err.println("Lỗi kiểm tra đăng nhập: " + e.getMessage());
+                    return "LOGIN_FAIL|Không thể xác thực tài khoản lúc này!";
                 }
+
+            case "LOGOUT":
+                clearAuthentication();
+                return "LOGOUT_SUCCESS";
             
             case "GET_PROFILE":
                 if (parts.length < 2) {
                     return "GET_PROFILE_FAIL|Thiếu tham số Email!";
                 }
                 String reqEmail = parts[1].trim();
+                if (!isAuthenticatedAs(reqEmail)) {
+                    return "GET_PROFILE_FAIL|Vui lòng đăng nhập đúng tài khoản!";
+                }
                 
                 // Truy vấn dữ liệu từ MySQL qua UserDAO
                 Model.User user = UserDAO.getUserByEmail(reqEmail);
@@ -155,6 +179,9 @@ public class ClientHandler implements Runnable {
             case "UPDATE_PROFILE":
                 if (parts.length < 5) {
                     return "UPDATE_PROFILE_FAIL|Dữ liệu cập nhật không đầy đủ!";
+                }
+                if (!isAuthenticatedAs(parts[1].trim())) {
+                    return "UPDATE_PROFILE_FAIL|Vui lòng đăng nhập đúng tài khoản!";
                 }
                 // Khởi tạo đối tượng User từ model
                 Model.User updateUser = new Model.User();
@@ -186,14 +213,18 @@ public class ClientHandler implements Runnable {
                     Model.Quiz quiz = gson.fromJson(jsonQuiz, Model.Quiz.class);
 
                     // Lấy thông tin người tạo bài thi từ CreatorEmail
-                    if (quiz.getCreatorEmail() != null && !quiz.getCreatorEmail().isEmpty()) {
-                        Model.User creator = UserDAO.getUserByEmail(quiz.getCreatorEmail());
-                        if (creator != null) {
-                            quiz.setCreatorId(creator.getId());
-                        } else {
-                            return "CREATE_QUIZ_FAIL|Không xác thực được người tạo bộ đề!";
-                        }
+                    if (quiz.getCreatorEmail() == null || !isAuthenticatedAs(quiz.getCreatorEmail())) {
+                        return "CREATE_QUIZ_FAIL|Vui lòng đăng nhập đúng tài khoản tạo đề!";
                     }
+                    // Luôn lấy creatorId từ tài khoản đã xác thực, không tin ID client gửi lên.
+                    if (UserDAO.isBlocked(quiz.getCreatorEmail(), "create")) {
+                        return "CREATE_QUIZ_FAIL|Tài khoản bị cấm tạo bộ đề!";
+                    }
+                    Model.User creator = UserDAO.getUserByEmail(quiz.getCreatorEmail());
+                    if (creator == null) {
+                        return "CREATE_QUIZ_FAIL|Không xác thực được người tạo bộ đề!";
+                    }
+                    quiz.setCreatorId(creator.getId());
 
                     // Xử lý ảnh đính kèm 
                     if (quiz.getQuestions() != null) {
@@ -237,6 +268,12 @@ public class ClientHandler implements Runnable {
                     int quizId = Integer.parseInt(parts[1].trim());
                     String userEmail = parts[2].trim();
 
+                    if (!isAuthenticatedAs(userEmail)) {
+                        return "START_EXAM_FAIL|Vui lòng đăng nhập đúng tài khoản!";
+                    }
+                    if (UserDAO.isBlocked(userEmail, "exam")) {
+                        return "START_EXAM_FAIL|Tài khoản bị cấm tham gia thi!";
+                    }
                     Model.User examUser = UserDAO.getUserByEmail(userEmail);
                     if (examUser == null) return "START_EXAM_FAIL|Không xác thực được người dùng!";
 
@@ -254,6 +291,7 @@ public class ClientHandler implements Runnable {
 
                     int sessionId = Server.db.ExamDAO.startExamSession(quizId, examUser.getId());
                     if (sessionId <= 0) return "START_EXAM_FAIL|Không thể tạo phiên làm bài!";
+                    activeExamSessions.add(sessionId);
 
                     // Đóng gói Quiz (đã xáo trộn) + SessionID trả về Client bằng JSON
                     com.google.gson.JsonObject jsonResp = new com.google.gson.JsonObject();
@@ -271,8 +309,14 @@ public class ClientHandler implements Runnable {
                     int sessionId = Integer.parseInt(parts[1].trim());
                     int questionId = Integer.parseInt(parts[2].trim());
                     int selectedOptId = Integer.parseInt(parts[3].trim());
+                    if (!activeExamSessions.contains(sessionId)) {
+                        return "SUBMIT_ANSWER_FAIL|Phiên thi không thuộc kết nối này!";
+                    }
+                    if (UserDAO.isBlocked(authenticatedEmail, "exam")) {
+                        return "SUBMIT_ANSWER_FAIL|Tài khoản bị cấm tham gia thi!";
+                    }
 
-                    // Server đối chiếu đáp án và ghi nhận
+                    // DAO kiểm tra phiên, câu hỏi, đáp án và chống gửi lặp trước khi ghi nhận.
                     boolean isCorrect = Server.db.ExamDAO.submitAnswer(sessionId, questionId, selectedOptId);
 
                     return "SUBMIT_ANSWER_SUCCESS|" + isCorrect;
@@ -282,13 +326,18 @@ public class ClientHandler implements Runnable {
                 }
 
             case "FINISH_EXAM":
-                // FINISH_EXAM|sessionId|completionTimeSeconds
+                // Client gửi thời gian theo protocol cũ; kết quả server không sử dụng giá trị này.
                 try {
                     int sessionId = Integer.parseInt(parts[1].trim());
-                    int timeSeconds = Integer.parseInt(parts[2].trim());
+                    if (!activeExamSessions.contains(sessionId)) {
+                        return "FINISH_EXAM_FAIL|Phiên thi không thuộc kết nối này!";
+                    }
+                    if (UserDAO.isBlocked(authenticatedEmail, "exam")) {
+                        return "FINISH_EXAM_FAIL|Tài khoản bị cấm tham gia thi!";
+                    }
 
-                    // Tính tổng điểm & Lưu phiên thi vào MySQL
-                    double finalScore = Server.db.ExamDAO.finishExamSession(sessionId, timeSeconds);
+                    // Không dùng thời gian client gửi; server tính thời gian từ started_at trong DB.
+                    double finalScore = Server.db.ExamDAO.finishExamSession(sessionId);
 
                     // Lấy quiz_id từ phiên vừa hoàn tất để truy vấn đúng bảng xếp hạng.
                     int quizId = Server.db.ExamDAO.getQuizIdBySession(sessionId);
@@ -298,6 +347,7 @@ public class ClientHandler implements Runnable {
                     if (quizId > 0) {
                         leaderboard = Server.db.ExamDAO.getLeaderboardByQuiz(quizId);
                     }
+                    activeExamSessions.remove(sessionId);
 
                     // Đóng gói kết quả tổng hợp + Bảng xếp hạng bằng Gson
                     com.google.gson.JsonObject jsonResp = new com.google.gson.JsonObject();
@@ -315,6 +365,9 @@ public class ClientHandler implements Runnable {
                 try {
                     int quizId = Integer.parseInt(parts[1].trim());
                     String userEmail = parts[2].trim();
+                    if (!isAuthenticatedAs(userEmail)) {
+                        return "CHECK_CAN_EDIT_FAIL|Vui lòng đăng nhập đúng tài khoản!";
+                    }
 
                     Model.User editingUser = UserDAO.getUserByEmail(userEmail);
                     if (editingUser == null) return "CHECK_CAN_EDIT_FAIL|Không xác thực được người dùng!";
@@ -355,7 +408,13 @@ public class ClientHandler implements Runnable {
                     Model.Quiz quiz = gson.fromJson(jsonQuiz, Model.Quiz.class);
 
                     // Kiểm tra quyền sở hữu bộ đề: chỉ người tạo mới được cập nhật
-                    if (quiz.getCreatorEmail() != null && !quiz.getCreatorEmail().isEmpty()) {
+                    if (quiz.getCreatorEmail() == null || !isAuthenticatedAs(quiz.getCreatorEmail())) {
+                        return "UPDATE_QUIZ_FAIL|Vui lòng đăng nhập đúng tài khoản tạo đề!";
+                    }
+                    if (UserDAO.isBlocked(quiz.getCreatorEmail(), "create")) {
+                        return "UPDATE_QUIZ_FAIL|Tài khoản bị cấm quản lý bộ đề!";
+                    }
+                    if (!quiz.getCreatorEmail().isEmpty()) {
                         Model.User updater = UserDAO.getUserByEmail(quiz.getCreatorEmail());
                         Model.Quiz existing = QuizDAO.getQuizByIdForEdit(quiz.getId());
                         if (updater == null || existing == null || existing.getCreatorId() != updater.getId()) {
@@ -395,15 +454,40 @@ public class ClientHandler implements Runnable {
 
                 case "GET_USER_STATS":
                     try {
+                        if (parts.length < 2) {
+                            return "GET_USER_STATS_FAIL|Thiếu email người dùng!";
+                        }
                         String statsEmail = parts[1].trim();
+                        if (!isAuthenticatedAs(statsEmail)) {
+                            return "GET_USER_STATS_FAIL|Vui lòng đăng nhập đúng tài khoản!";
+                        }
                         String stats = Server.db.ExamDAO.getUserStats(statsEmail);
                         return "GET_USER_STATS_SUCCESS|" + stats;
                     } catch (Exception e) {
-                        return "GET_USER_STATS_FAIL|0|0.00";
+                        System.err.println("Lỗi lấy thống kê người dùng: " + e.getMessage());
+                        return "GET_USER_STATS_FAIL|Không thể lấy thống kê người dùng!";
                     }
             default:
                 return "ERROR|Lệnh không hợp lệ";
         }
+    }
+
+    public String getAuthenticatedEmail() {
+        return authenticatedEmail;
+    }
+
+    public boolean isAuthenticatedAs(String email) {
+        return authenticatedEmail != null && email != null
+                && authenticatedEmail.equalsIgnoreCase(email);
+    }
+
+    public void clearAuthentication() {
+        authenticatedEmail = null;
+        activeExamSessions.clear();
+    }
+
+    public void closeConnection() {
+        closeSocket();
     }
 
     private void closeSocket() {

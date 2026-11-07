@@ -1,7 +1,7 @@
 
 -- 1. KHỞI TẠO CƠ SỞ DỮ LIỆU QUIZ_DB
-CREATE DATABASE IF NOT EXISTS quiz_db 
-CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+IF DB_ID(N'quiz_db') IS NULL
+    CREATE DATABASE quiz_db;
 USE quiz_db;
 
 -- 2. TÀI KHOẢN NGƯỜI DÙNG & XÁC THỰC
@@ -30,7 +30,6 @@ CREATE TABLE IF NOT EXISTS otp_verifications (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_otp_email (email)
 );
-
 
 -- 3. NGÂN HÀNG ĐỀ: BỘ ĐỀ, CÂU HỎI VÀ CÁC ĐÁP ÁN
 CREATE TABLE IF NOT EXISTS quizzes (

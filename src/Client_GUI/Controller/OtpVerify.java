@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -21,12 +22,16 @@ public class OtpVerify {
     @FXML private Label lblStatus;
     @FXML private Button btnActivate;
 
-    private String fullName, gender, email, dob, password;
+    private String fullName;
+    private String gender;
+    private String email;
+    private String dob;
+    private String password;
     private Timeline timeline;
     private int timeSeconds = 600; // 10 phút = 600 giây
 
-    // Hàm nhận dữ liệu và bắt đầu đếm ngược 10 phút
-    public void setRegisterData(String fullName, String gender, String email, String dob, String password) {
+    public void setRegistrationData(String fullName, String gender, String email,
+                                    String dob, String password) {
         this.fullName = fullName;
         this.gender = gender;
         this.email = email;
@@ -75,24 +80,26 @@ public class OtpVerify {
             return;
         }
 
-        String request = String.format("REGISTER|%s|%s|%s|%s|%s|%s", fullName, gender, email, dob, password, otp);
-        // Gửi request qua Client Socket
+        String request = String.format("VERIFY_OTP|%s|%s|%s|%s|%s|%s",
+                fullName, gender, email, dob, password, otp);
         String response = Client_Socket.Client.getInstance().sendRequest(request);
 
-        // 2. Bắt đúng phản hồi REGISTER_SUCCESS từ Server
-        if (response != null && (response.startsWith("REGISTER_SUCCESS") || response.startsWith("SUCCESS"))) {
-            if (timeline != null) timeline.stop(); // Tắt bộ đếm 10 phút
+        if (response != null && response.startsWith("REGISTER_SUCCESS")) {
+            if (timeline != null) timeline.stop();
             try {
-                // Chuyển thẳng vào Trang chủ (home.fxml)
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/home.fxml"));
-                Parent root = loader.load();
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Đăng ký thành công");
+                alert.setHeaderText(null);
+                alert.setContentText("Tài khoản đã được xác thực. Vui lòng đăng nhập.");
+                alert.showAndWait();
 
+                Parent root = FXMLLoader.load(getClass().getResource("/fxml/login.fxml"));
                 Stage stage = (Stage) txtDigit1.getScene().getWindow();
                 stage.setScene(new Scene(root, 1000, 750));
                 stage.show();
             } catch (Exception e) {
                 e.printStackTrace();
-                lblStatus.setText("Lỗi khi tải trang chủ!");
+                lblStatus.setText("Lỗi khi tải màn hình đăng nhập!");
                 lblStatus.setStyle("-fx-text-fill: #ef4444;");
             }
         } else {
@@ -109,7 +116,7 @@ public class OtpVerify {
         String request = "REQUEST_OTP|" + email;
         String response = Client_Socket.Client.getInstance().sendRequest(request);
 
-        if (response != null && (response.startsWith("SUCCESS") || response.contains("OTP Sent"))) {
+        if (response != null && response.startsWith("SEND_OTP_SUCCESS")) {
             lblStatus.setText("Đã gửi lại mã OTP mới!");
             lblStatus.setStyle("-fx-text-fill: #10b981;");
             btnActivate.setDisable(false);

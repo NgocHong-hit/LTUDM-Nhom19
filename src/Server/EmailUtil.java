@@ -68,3 +68,7 @@ public class EmailUtil{
         }
     }
 }
+
+
+
+// thread phụ để xử lý gửi email OTP mà không làm gián đoạn luồng chính của ứng dụng.
