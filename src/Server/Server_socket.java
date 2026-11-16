@@ -120,8 +120,10 @@ public class Server_socket {
                 printStatistics();
                 break;
             case "block":
+                updateBlock(parts, true);
+                break;
             case "unblock":
-                updateBlock(parts, "block".equalsIgnoreCase(parts[0]));
+                updateBlock(parts, false);
                 break;
             case "quit":
                 stop();
@@ -153,13 +155,25 @@ public class Server_socket {
 
     private void updateBlock(String[] parts, boolean blocked) {
         if (parts.length < 2 || parts.length > 3) {
-            System.out.println("Cú pháp: " + (blocked ? "block" : "unblock")
-                    + " <email> [all|login|create|exam]");
+            printBlockUsage(blocked);
             return;
         }
 
         String email = parts[1];
         String type = parts.length == 3 ? parts[2].toLowerCase(Locale.ROOT) : "all";
+        if (parts.length == 2 && email.contains("|")) {
+            String[] target = email.split("\\|", -1);
+            if (target.length != 2 || target[0].trim().isEmpty() || target[1].trim().isEmpty()) {
+                printBlockUsage(blocked);
+                return;
+            }
+            email = target[0].trim();
+            type = target[1].trim().toLowerCase(Locale.ROOT);
+        } else if (email.contains("|")) {
+            printBlockUsage(blocked);
+            return;
+        }
+
         try {
             if (!UserDAO.setBlockOption(email, type, blocked)) {
                 System.out.println("Không tìm thấy người dùng: " + email);
@@ -177,12 +191,20 @@ public class Server_socket {
         }
     }
 
+    private void printBlockUsage(boolean blocked) {
+        String command = blocked ? "block" : "unblock";
+        System.out.println("Cú pháp: " + command
+                + " <email> [all|login|create|exam] hoặc " + command + " <email>|<loại khóa>");
+    }
+
     private void printConsoleHelp() {
         System.out.println("Lệnh quản trị server:");
         System.out.println("  stats");
         System.out.println("  online");
         System.out.println("  block <email> [all|login|create|exam]");
+        System.out.println("  block <email>|<loại khóa>");
         System.out.println("  unblock <email> [all|login|create|exam]");
+        System.out.println("  unblock <email>|<loại khóa>");
         System.out.println("  help");
         System.out.println("  quit");
     }
