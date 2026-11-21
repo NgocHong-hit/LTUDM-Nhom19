@@ -3,6 +3,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "MainApp",
+            "request": "launch",
+            "mainClass": "Client_GUI.MainApp",
+            "projectName": "Creat_quiz_25b43e25"
+        },
+        {
+            "type": "java",
             "name": "Run MainApp (Client)",
             "request": "launch",
             "mainClass": "Client_GUI.MainApp",

@@ -3,6 +3,7 @@ package Client_GUI.Controller;
 import java.util.ResourceBundle;
 
 import Client_Socket.Client;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -40,10 +41,23 @@ import javafx.stage.Stage;
             return;
         }
 
-        // Tạo request gửi Server
-        String request = String.format("LOGIN|%s|%s", email, password);
-        String response = Client_Socket.Client.getInstance().sendRequest(request);
+        btnLogin.setDisable(true);
+        lblMessage.setText("Đang đăng nhập...");
+        lblMessage.setStyle("-fx-text-fill: #64748b;");
 
+        String request = String.format("LOGIN|%s|%s", email, password);
+        Thread loginThread = new Thread(() -> {
+            String response = Client.getInstance().sendRequest(request);
+            Platform.runLater(() -> {
+                btnLogin.setDisable(false);
+                handleLoginResponse(email, response);
+            });
+        }, "login-request");
+        loginThread.setDaemon(true);
+        loginThread.start();
+    }
+
+    private void handleLoginResponse(String email, String response) {
         if (response != null && response.startsWith("LOGIN_SUCCESS")) {
             try {
                 String userName = response.contains("|") ? response.split("\\|")[1] : "Thí sinh";

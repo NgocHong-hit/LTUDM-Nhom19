@@ -1,6 +1,7 @@
 package Client_GUI.Controller;
 
 import Client_Socket.Client;
+import common.ValidationUtil;
 import java.time.LocalDate;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -29,6 +30,14 @@ public class Register {
         if (client == null) {
             client = Client.getInstance();
         }
+        dpDob.setEditable(false);
+        dpDob.setDayCellFactory(picker -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate item, boolean empty) {
+                super.updateItem(item, empty);
+                setDisable(empty || item.isAfter(LocalDate.now()));
+            }
+        });
     }
 
 
@@ -43,6 +52,16 @@ public class Register {
 
         if (fullName.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || gender == null || dob == null) {
             showMessage("Vui lòng điền đầy đủ tất cả thông tin!", true);
+            return;
+        }
+
+        if (!ValidationUtil.isValidEmail(email)) {
+            showMessage("Email không đúng định dạng. Ví dụ: ten@example.com", true);
+            return;
+        }
+
+        if (dob.isAfter(LocalDate.now())) {
+            showMessage("Ngày sinh không được sau ngày hiện tại!", true);
             return;
         }
 

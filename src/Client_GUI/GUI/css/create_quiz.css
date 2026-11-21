@@ -98,6 +98,15 @@
     -fx-text-fill: #1e293b;
 }
 
+.image-preview-box {
+    -fx-background-color: #f8fafc;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 6px;
+}
+
 .note-chip {
     -fx-background-color: #f1f5f9;
     -fx-border-color: #cbd5e1;

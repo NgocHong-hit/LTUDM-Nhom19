@@ -1,15 +1,7 @@
 Tên đề tài: CHIA SẼ ĐỀ VÀ THI TRẮC NGHIỆM
 Danh sách thành viên
 PHAN LÊ NGỌC HỒNG - 3122410134
-CÁCH CHẠY SERVER-CLIENT
-biên dịch
-rmdir /s /q bin & mkdir bin\fxml & mkdir bin\css & dir /s /b src\*.java > sources.txt & javac -encoding UTF-8 -cp "lib/*" -d bin @sources.txt & del sources.txt & copy /Y src\Client_GUI\GUI\fxml\*.fxml bin\fxml\ & copy /Y src\Client_GUI\GUI\css\*.css bin\css\
 
-chạy server
-java -cp "bin;lib/*" Server.Server_socket
-
-chạy GUI
-java --module-path "lib" --add-modules javafx.controls,javafx.fxml -Djava.library.path="lib" -cp "bin;lib/*" Client_GUI.MainApp
 
 Lệnh quản trị tại dấu nhắc server>
 help
@@ -21,14 +13,28 @@ unblock <email> [all|login|create|exam]
 unblock <email>|<loại khóa>
 quit
 
-`stats` hiển thị tổng người dùng, số email đã đăng nhập đang online,
-tổng bộ đề, điểm cao nhất và thấp nhất của các lượt thi đã nộp.
-`block` / `unblock` khóa hoặc mở khóa đăng nhập, tạo/cập nhật đề,
-tham gia thi hoặc tất cả (mặc định là `all`).
-Tài khoản bị khóa đăng nhập sẽ bị đăng xuất khỏi các kết nối hiện tại.
+Biên dịch lại code Server (khi sửa file trong src/Server/):
+javac -encoding UTF-8 -d bin -cp "bin;lib/*" src/Server/*.java
 
-Mã hóa kết nối dùng RSA-OAEP để trao đổi khóa phiên AES riêng cho từng client,
-sau đó dùng AES-GCM và số thứ tự gói tin để bảo vệ dữ liệu/chống phát lại.
-Lần đầu chạy server sẽ tạo `server_private.key` và `server_public.key` trong thư
-mục chạy. Hãy chuyển `server_public.key` đến thư mục chạy của client bằng kênh
-đáng tin cậy để client ghim khóa; không chuyển hoặc chia sẻ `server_private.key`.
+Biên dịch lại code Client (khi sửa file giao diện/controller trong src/Client_GUI/):
+javac -encoding UTF-8 --module-path "lib" --add-modules javafx.controls,javafx.fxml -d bin -cp "bin;lib/*" src/Client_GUI/Controller/*.java
+
+Đẩy thư mục bin/ mới biên dịch lên VPS:
+scp -r bin root@160.250.134.162:/opt/quiz-server/
+
+Chạy thử ứng dụng Client trên Windows:
+java --module-path "lib" --add-modules javafx.controls,javafx.fxml -Djava.library.path="lib" -cp "bin;lib/*" Client_GUI.MainApp
+
+Tắt Server cũ (dùng trước khi chạy lại code mới):
+pkill -f Server.Server_socket && screen -wipe
+
+Bật Server ở chế độ chạy ngầm 24/7:
+screen -dmS quiz bash -c "cd /opt/quiz-server && java -cp 'bin:lib/*' Server.Server_socket"
+
+Kiểm tra trạng thái Server và cổng 12345:
+screen -ls && ss -tulnp | grep 12345
+
+Mở màn hình console của Server đang chạy ngầm (để xem log hoặc gõ lệnh stats, block, unblock):
+screen -r quiz
+
+ssh root@160.250.134.162

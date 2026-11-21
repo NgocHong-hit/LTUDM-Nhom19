@@ -26,7 +26,7 @@ public class Client {
 
     public static synchronized Client getInstance() {
         if (instance == null) {
-            instance = new Client("127.0.0.1", 12345);
+            instance = new Client("160.250.134.162", 12345);
         }
         return instance;
     }

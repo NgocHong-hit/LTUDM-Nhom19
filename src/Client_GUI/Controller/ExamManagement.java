@@ -6,9 +6,11 @@ import Model.Question;
 import Model.Quiz;
 import Model.User;
 import com.google.gson.Gson;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
@@ -21,6 +23,9 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -36,6 +41,8 @@ public class ExamManagement implements Initializable {
     @FXML private Label lblQuestionIndex;
     @FXML private TextArea txtQuestionContent;
     @FXML private TextField txtImageUrl;
+    @FXML private VBox imagePreviewContainer;
+    @FXML private ImageView imgQuestionPreview;
 
     @FXML private ToggleGroup correctAnswerGroup;
     @FXML private RadioButton rbOptionA, rbOptionB, rbOptionC, rbOptionD;
@@ -96,6 +103,7 @@ public class ExamManagement implements Initializable {
         questionList.clear();
         if (quiz.getQuestions() != null && !quiz.getQuestions().isEmpty()) {
             questionList.addAll(quiz.getQuestions());
+            cmbSuggestedQuestions.setValue(questionList.size() + " câu");
         }
 
         // Làm mới bảng
@@ -116,6 +124,7 @@ public class ExamManagement implements Initializable {
 
         txtQuestionContent.setText(q.getContent() != null ? q.getContent() : "");
         txtImageUrl.setText(q.getImageUrl() != null ? q.getImageUrl() : "");
+        updateImagePreview(q.getImageUrl());
 
         List<Option> opts = q.getOptions();
         if (opts != null && opts.size() >= 4) {
@@ -163,6 +172,64 @@ public class ExamManagement implements Initializable {
         File file = fileChooser.showOpenDialog(txtImageUrl.getScene().getWindow());
         if (file != null) {
             txtImageUrl.setText(file.getAbsolutePath());
+            updateImagePreview(file.getAbsolutePath());
+        }
+    }
+
+    private void updateImagePreview(String imageSource) {
+        imgQuestionPreview.setImage(null);
+        imagePreviewContainer.setVisible(false);
+        imagePreviewContainer.setManaged(false);
+        if (lblStatus != null) {
+            lblStatus.setText("");
+        }
+
+        if (imageSource == null || imageSource.trim().isEmpty()) {
+            return;
+        }
+
+        try {
+            Image image;
+            if (imageSource.startsWith("data:image/")) {
+                int separator = imageSource.indexOf(',');
+                if (separator < 0) {
+                    throw new IllegalArgumentException("Data URI ảnh không hợp lệ");
+                }
+                byte[] imageBytes = Base64.getDecoder().decode(imageSource.substring(separator + 1));
+                image = new Image(new ByteArrayInputStream(imageBytes));
+            } else if (imageSource.startsWith("image/")) {
+                // Ảnh đang nằm trên VPS -> Gửi request GET_IMAGE lên Server lấy Base64
+                String response = Client.getInstance().sendRequest("GET_IMAGE|" + imageSource);
+                System.out.println("DEBUG GET_IMAGE response: " + response); // In ra console để kiểm tra
+                if (response != null && response.startsWith("IMAGE_DATA|")) {
+                    String base64Str = response.substring("IMAGE_DATA|".length());
+                    byte[] imageBytes = Base64.getDecoder().decode(base64Str);
+                    image = new Image(new ByteArrayInputStream(imageBytes));
+                } else {
+                    throw new IllegalArgumentException("Không thể tải ảnh từ Server");
+                }
+            } else {
+                File imageFile = new File(imageSource);
+                if (!imageFile.isFile()) {
+                    imageFile = new File(System.getProperty("user.dir"), imageSource);
+                }
+                if (!imageFile.isFile()) {
+                    imageFile = new File("image", new File(imageSource).getName());
+                }
+                image = imageFile.isFile()
+                        ? new Image(imageFile.toURI().toString())
+                        : new Image(new ByteArrayInputStream(Base64.getDecoder().decode(imageSource)));
+            }
+
+            if (image.isError()) {
+                throw new IllegalArgumentException("JavaFX không đọc được ảnh");
+            }
+            imgQuestionPreview.setImage(image);
+            imagePreviewContainer.setVisible(true);
+            imagePreviewContainer.setManaged(true);
+        } catch (IllegalArgumentException e) {
+            lblStatus.setText("Không thể hiển thị ảnh minh họa. Vui lòng chọn lại tệp ảnh.");
+            lblStatus.setStyle("-fx-text-fill: #ef4444;");
         }
     }
 
@@ -208,6 +275,7 @@ public class ExamManagement implements Initializable {
     private void handleClearQuestionForm(ActionEvent event) {
         txtQuestionContent.clear();
         txtImageUrl.clear();
+        updateImagePreview(null);
         txtOptionA.clear();
         txtOptionB.clear();
         txtOptionC.clear();
@@ -257,6 +325,20 @@ public class ExamManagement implements Initializable {
 
         if (questionList.isEmpty()) {
             lblStatus.setText("Bộ đề thi phải có ít nhất 1 câu hỏi!");
+            lblStatus.setStyle("-fx-text-fill: #ef4444;");
+            return;
+        }
+
+        String selectedQuestionCount = cmbSuggestedQuestions.getValue();
+        if (selectedQuestionCount == null || !selectedQuestionCount.matches("\\d+ câu")) {
+            lblStatus.setText("Vui lòng chọn số câu hỏi hợp lệ!");
+            lblStatus.setStyle("-fx-text-fill: #ef4444;");
+            return;
+        }
+        int expectedQuestionCount = Integer.parseInt(selectedQuestionCount.substring(0, selectedQuestionCount.indexOf(' ')));
+        if (questionList.size() != expectedQuestionCount) {
+            lblStatus.setText("Bạn đã chọn " + expectedQuestionCount + " câu nhưng hiện có "
+                    + questionList.size() + " câu. Vui lòng thêm hoặc xóa câu hỏi cho đủ số lượng.");
             lblStatus.setStyle("-fx-text-fill: #ef4444;");
             return;
         }

@@ -1,14 +1,18 @@
 package Server;
 
 import common.CryptoUtil;
+import common.ValidationUtil;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashSet;
@@ -88,6 +92,9 @@ public class ClientHandler implements Runnable {
                     return "ERROR|Email đăng ký không hợp lệ!";
                 }
                 String emailForOTP = parts[1].trim();
+                if (!ValidationUtil.isValidEmail(emailForOTP)) {
+                    return "ERROR|Email không đúng định dạng!";
+                }
                 if (userDAO.isEmail(emailForOTP)) {
                     return "ERROR|Email này đã được sử dụng!";
                 }
@@ -109,17 +116,22 @@ public class ClientHandler implements Runnable {
                 if (parts[1].trim().isEmpty() || parts[2].trim().isEmpty()
                         || parts[3].trim().isEmpty() || parts[5].isEmpty()
                         || parts[5].length() < 6 || !parts[6].matches("\\d{6}")
+                        || !ValidationUtil.isValidEmail(parts[3].trim())
                         || !(parts[2].equals("Nam") || parts[2].equals("Nữ")
                                 || parts[2].equals("Khác"))) {
                     return "REGISTER_FAIL|Thông tin đăng ký không hợp lệ!";
                 }
+                LocalDate dob;
                 try {
-                    java.sql.Date.valueOf(parts[4]);
-                } catch (IllegalArgumentException e) {
+                    dob = LocalDate.parse(parts[4]);
+                } catch (DateTimeParseException e) {
                     return "REGISTER_FAIL|Ngày sinh không hợp lệ!";
                 }
+                if (dob.isAfter(LocalDate.now())) {
+                    return "REGISTER_FAIL|Ngày sinh không được sau ngày hiện tại!";
+                }
                 if (userDAO.verifyOTPAndRegister(
-                        parts[1], parts[2], parts[3], parts[4], parts[5], parts[6])) {
+                        parts[1], parts[2], parts[3].trim(), parts[4], parts[5], parts[6])) {
                     return "REGISTER_SUCCESS|Tạo tài khoản thành công";
                 }
                 return "REGISTER_FAIL|Mã OTP không đúng hoặc đã hết hạn!";
@@ -392,7 +404,33 @@ public class ClientHandler implements Runnable {
                     e.printStackTrace();
                     return "CHECK_CAN_EDIT_FAIL|Lỗi hệ thống phía Server!";
                 }
+            
 
+            case "GET_IMAGE": {
+                String[] imgParts = request.split("\\|", 2);
+                if (imgParts.length < 2 || imgParts[1].trim().isEmpty()) {
+                    return "ERROR|Thiếu đường dẫn ảnh";
+                }
+                String imgPath = imgParts[1].trim();
+                File imgFile = new File(imgPath);
+                if (!imgFile.exists()) {
+                    imgFile = new File("/opt/quiz-server/" + imgPath);
+                }
+                if (imgFile.exists()) {
+                    try {
+                        byte[] bytes = java.nio.file.Files.readAllBytes(imgFile.toPath());
+                        String base64 = java.util.Base64.getEncoder().encodeToString(bytes);
+                        System.out.println("Đã gửi ảnh: " + imgFile.getAbsolutePath() + " (" + bytes.length + " bytes)");
+                        return "IMAGE_DATA|" + base64;
+                    } catch (java.io.IOException e) {
+                        e.printStackTrace();
+                        return "ERROR|Không thể đọc ảnh trên server";
+                    }
+                }
+                System.out.println("Không tìm thấy ảnh tại: " + imgFile.getAbsolutePath());
+                return "ERROR|Không tìm thấy ảnh trên server";
+            }
+            
             case "UPDATE_QUIZ":
                 try {
                     // Tách làm 2 phần: parts[0] = "UPDATE_QUIZ", parts[1] = chuỗi JSON

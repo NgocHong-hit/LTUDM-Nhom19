@@ -1,5 +1,6 @@
 package Client_GUI.Controller;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -110,22 +111,39 @@ public class MainDashboard {
         });
 
         tblQuizzes.setItems(masterQuizList);
-        loadQuizList();
-        loadUserOverviewStats();
+        loadInitialDashboardData();
     }
 
-    // Nạp các con số thống kê tổng quan ở 3 thẻ trên cùng
-    private void loadUserOverviewStats() {
+    private void loadInitialDashboardData() {
         User currentUser = User.getCurrentUser();
-        if (currentUser != null && currentUser.getEmail() != null) {
-            String response = Client.getInstance().sendRequest("GET_USER_STATS|" + currentUser.getEmail());
-            if (response != null && response.startsWith("GET_USER_STATS_SUCCESS")) {
-                String[] parts = response.split("\\|");
-                if (parts.length >= 3) {
-                    if (lblUserCompletedExams != null) lblUserCompletedExams.setText(parts[1]);
-                    if (lblAvgScore != null) lblAvgScore.setText(parts[2] + " / 10");
+        String email = currentUser != null ? currentUser.getEmail() : null;
+
+        Thread loaderThread = new Thread(() -> {
+            String quizResponse = Client.getInstance().sendRequest("GET_ALL_QUIZZES");
+            String statsResponse = email != null
+                    ? Client.getInstance().sendRequest("GET_USER_STATS|" + email)
+                    : null;
+
+            Platform.runLater(() -> {
+                displayQuizListResponse(quizResponse);
+                if (statsResponse != null) {
+                    displayUserOverviewStats(statsResponse);
                 }
+            });
+        }, "dashboard-data-loader");
+        loaderThread.setDaemon(true);
+        loaderThread.start();
+    }
+
+    private void displayUserOverviewStats(String response) {
+        if (response != null && response.startsWith("GET_USER_STATS_SUCCESS")) {
+            String[] parts = response.split("\\|");
+            if (parts.length >= 3) {
+                if (lblUserCompletedExams != null) lblUserCompletedExams.setText(parts[1]);
+                if (lblAvgScore != null) lblAvgScore.setText(parts[2] + " / 10");
             }
+        } else {
+            System.err.println("Lỗi tải thống kê người dùng: " + response);
         }
     }
 
@@ -211,7 +229,10 @@ public class MainDashboard {
 
     private void loadQuizList() {
         String response = Client.getInstance().sendRequest("GET_ALL_QUIZZES");
+        displayQuizListResponse(response);
+    }
 
+    private void displayQuizListResponse(String response) {
         if (response == null || !response.startsWith("GET_ALL_QUIZZES_SUCCESS|")) {
             System.err.println("Lỗi tải danh sách bộ đề: " + response);
             return;
